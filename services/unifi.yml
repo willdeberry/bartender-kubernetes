@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: unifi-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: unifi
+  ports:
+  - name: unifi-http
+    port: 8080
+    protocol: TCP
+    targetPort: unifi-http
+  - name: unifi-https
+    port: 8443
+    protocol: TCP
+    targetPort: unifi-https
+  - name: unifi-udp1
+    port: 3478
+    protocol: UDP
+    targetPort: unifi-udp1
+  - name: unifi-udp2
+    port: 10001
+    protocol: UDP
+    targetPort: unifi-udp2
+  externalIPs:
+    - "192.168.1.50"

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transmission-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transmission
+  template:
+    metadata:
+      labels:
+        app: transmission
+    spec:
+      containers:
+      - name: transmission
+        image: lscr.io/linuxserver/transmission
+        env:
+        - name: PUID
+          value: '65534'
+        - name: PGID
+          value: '65534'
+        - name: USER
+          valueFrom:
+            secretKeyRef:
+              name: transmission
+              key: USER
+        - name: PASS
+          valueFrom:
+            secretKeyRef:
+              name: transmission
+              key: PASS
+        - name: WHITELIST
+          value: ''
+        ports:
+        - containerPort: 9091
+          name: transmission
+          protocol: TCP
+        - containerPort: 51412
+          name: torrent-tcp
+          protocol: TCP
+        - containerPort: 51412
+          name: torrent-udp
+          protocol: UDP
+        volumeMounts:
+        - name: transmission-nfs
+          mountPath: /downloads
+          subPath: downloads
+          readOnly: false
+        - name: transmission-nfs
+          mountPath: /config
+          subPath: config
+          readOnly: false
+      volumes:
+      - name: transmission-nfs
+        nfs:
+          server: 192.168.1.13
+          path: /storage/tank/torrents

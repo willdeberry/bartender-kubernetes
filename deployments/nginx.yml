@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: default
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            port: http
+            path: /
+            scheme: HTTP
+        volumeMounts:
+        - name: nginx-nfs
+          mountPath: /var/www
+          subPath: www
+          readOnly: true
+        - name: nginx-nfs
+          mountPath: /etc/nginx/snippets
+          subPath: snippets
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        - name: nginx-nfs
+          mountPath: /etc/nginx/conf.d/sudoservers.conf
+          subPath: conf.d/sudoservers.conf
+          readOnly: true
+        - name: nginx-nfs
+          mountPath: /etc/nginx/conf.d/downloads.conf
+          subPath: conf.d/downloads.conf
+          readOnly: true
+        - name: nginx-nfs
+          mountPath: /etc/nginx/conf.d/storage.conf
+          subPath: conf.d/storage.conf
+          readOnly: true
+        - name: nginx-nfs
+          mountPath: /etc/nginx/conf.d/unifi.conf
+          subPath: conf.d/unifi.conf
+          readOnly: true
+        - name: nginx-nfs
+          mountPath: /etc/nginx/conf.d/plex.conf
+          subPath: conf.d/plex.conf
+          readOnly: true
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+          items:
+          - key: nginx.conf
+            path: nginx.conf
+      - name: nginx-nfs
+        nfs:
+          server: 192.168.1.13
+          path: /storage/tank/kubernetes/nginx
