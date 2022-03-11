@@ -16,6 +16,7 @@ spec:
       containers:
       - name: transmission
         image: lscr.io/linuxserver/transmission
+        imagePullPolicy: Always
         env:
         - name: PUID
           value: '65534'
