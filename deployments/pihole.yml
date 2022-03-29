@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      labels:
+        app: pihole
+    spec:
+      containers:
+      - name: pihole
+        image: pihole/pihole:latest
+        imagePullPolicy: Always
+        env:
+        - name: TZ
+          value: "America/New_York"
+        - name: WEBPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pihole
+              key: PASS
+        volumeMounts:
+        - name: pihole-nfs
+          mountPath: "/etc/pihole"
+          subPath: pihole
+          readOnly: false
+        - name: pihole-nfs
+          mountPath: "/etc/dnsmasq.d"
+          subPath: dnsmasq.d
+          readOnly: false
+      volumes:
+      - name: pihole-nfs
+        nfs:
+          server: 192.168.1.13
+          path: /storage/tank/kubernetes/pihole/data
