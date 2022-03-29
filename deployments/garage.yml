@@ -21,8 +21,16 @@ spec:
         - name: localtime
           mountPath: /etc/localtime
           readOnly: true
+        - name: garage-nfs
+          mountPath: /usr/bin/garage/schedule.json
+          subPath: schedule.json
+          readOnly: true
       volumes:
       - name: localtime
         hostPath:
           path: /etc/localtime
           type: File
+      - name: garage-nfs
+        nfs:
+          server: 192.168.1.13
+          path: /storage/tank/kubernetes/garage
