@@ -1,3 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-configmap
+  namespace: default
+data:
+  TZ: "America/New_York"
+  DNS1: 192.168.1.1
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,26 +26,113 @@ spec:
       containers:
       - name: pihole
         image: pihole/pihole:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: pihole-configmap
+        - secretRef:
+            name: pihole
         env:
-        - name: TZ
-          value: "America/New_York"
-        - name: WEBPASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: pihole
-              key: PASS
+        - name: DNSMASQ_USER
+          value: root
+        - name: PIHOLE_UID
+          value: "1000"
+        - name: PIHOLE_GID
+          value: "1000"
+        ports:
+        - containerPort: 80
+          name: pihole-http
+          protocol: TCP
+        - containerPort: 53
+          name: pihole-dns-tcp
+          protocol: TCP
+        - containerPort: 53
+          name: pihole-dns-udp
+          protocol: UDP
         volumeMounts:
         - name: pihole-nfs
           mountPath: "/etc/pihole"
-          subPath: pihole
+          subPath: etc-pihole
           readOnly: false
         - name: pihole-nfs
           mountPath: "/etc/dnsmasq.d"
-          subPath: dnsmasq.d
+          subPath: etc-dnsmasq.d
           readOnly: false
       volumes:
       - name: pihole-nfs
         nfs:
           server: 192.168.1.13
-          path: /storage/tank/kubernetes/pihole/data
+          path: /storage/tank/kubernetes/pihole
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-ui-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: pihole
+  ports:
+  - port: 8000
+    targetPort: 80
+    name: pihole-admin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-dns-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: pihole
+  ports:
+  - port: 53
+    targetPort: 53
+    protocol: TCP
+    name: 53-tcp
+  - port: 53
+    targetPort: 53
+    protocol: UDP
+    name: 53-udp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-dns-udp
+  namespace: default
+spec:
+  selector:
+    app: pihole
+  ports:
+    - name: 53-udp
+      port: 53
+      targetPort: 53
+      protocol: UDP
+  externalTrafficPolicy: Local
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+      - ip: 192.168.1.50
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-dns-tcp
+  namespace: default
+spec:
+  selector:
+    app: pihole
+  ports:
+    - name: 53-tcp
+      port: 53
+      targetPort: 53
+      protocol: TCP
+  externalTrafficPolicy: Local
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+      - ip: 192.168.1.50

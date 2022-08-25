@@ -59,6 +59,10 @@ spec:
           mountPath: /etc/nginx/conf.d/plex.conf
           subPath: conf.d/plex.conf
           readOnly: true
+        - name: nginx-nfs
+          mountPath: /etc/nginx/conf.d/pihole.conf
+          subPath: conf.d/pihole.conf
+          readOnly: true
       volumes:
       - name: nginx-config
         configMap:
