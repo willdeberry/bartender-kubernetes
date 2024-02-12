@@ -99,6 +99,10 @@ data:
             server 192.168.1.13:32400;
         }
 
+        upstream bridge {
+            server 192.168.1.13:8581;
+        }
+
         include /etc/nginx/conf.d/*.conf;
     }
 ---
@@ -166,6 +170,10 @@ spec:
         - name: nginx-nfs
           mountPath: /etc/nginx/conf.d/pihole.conf
           subPath: conf.d/pihole.conf
+          readOnly: true
+        - name: nginx-nfs
+          mountPath: /etc/nginx/conf.d/homebridge.conf
+          subPath: conf.d/homebridge.conf
           readOnly: true
       volumes:
       - name: nginx-config
