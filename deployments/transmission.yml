@@ -73,14 +73,18 @@ spec:
         volumeMounts:
         - name: transmission-nfs
           mountPath: /downloads
-          subPath: downloads
+          subPath: torrents/downloads
           readOnly: false
         - name: transmission-nfs
           mountPath: /config
-          subPath: config
+          subPath: torrents/config
+          readOnly: false
+        - name: transmission-nfs
+          mountPath: /videos
+          subPath: videos
           readOnly: false
       volumes:
       - name: transmission-nfs
         nfs:
           server: 192.168.1.13
-          path: /storage/tank/torrents
+          path: /storage/tank
